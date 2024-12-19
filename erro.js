@@ -1,35 +1,60 @@
 class RedeHospitalar {
     constructor() {
-        // Banco de dados fictício de usuários e senhas antigas
         this.usuarios = {
-            joao: ["senha123", "senhaAntiga123"], // Senhas antigas reutilizáveis
-            maria: ["senha2023"]
+            joao: { senhaAtual: "senha123", expirada: false, ativo: false, mfaAtivo: true }, 
+            laryssa: { senhaAtual: "ifms2023larissa", expirada: false, ativo: true, mfaAtivo: true },
         };
     }
 
-    autenticar(usuario, senha) {
-        // Permite autenticação com qualquer senha antiga do usuário
-        if (this.usuarios[usuario] && this.usuarios[usuario].includes(senha)) {
-            console.log(`Usuário ${usuario} autenticado com sucesso!`);
-            return true;
+    autenticar(usuario, senha, mfaToken) {
+        if (!this.usuarios[usuario]) {
+            console.log("Falha na autenticação. Usuário inválido.");
+            return false;
         }
-        console.log("Falha na autenticação. Usuário ou senha inválidos.");
-        return false;
+
+        const dadosUsuario = this.usuarios[usuario];
+
+        if (!dadosUsuario.ativo) {
+            console.log(`Usuário ${usuario} Falha na autenticação. Conta desativada.`);
+            return false;
+        }
+
+        if (dadosUsuario.senhaAtual !== senha || dadosUsuario.expirada) {
+            console.log("Falha na autenticação. Senha inválida ou expirada.");
+            return false;
+        }
+
+        if (dadosUsuario.mfaAtivo && !this.validarMFA(mfaToken)) {
+            console.log("Falha na autenticação. MFA inválido.");
+            return false;
+        }
+
+        console.log(`Usuário ${usuario} autenticado com sucesso!`);
+        return true;
+    }
+
+    validarMFA(token) {
+        return token === "123456";
     }
 
     acessarSistemaCritico(usuario) {
-        // Sistema crítico acessível sem autenticação adicional (MFA ausente)
         console.log(`${usuario} acessou o sistema crítico!`);
     }
 }
 
-// Simulação do problema
+
 const rede = new RedeHospitalar();
 
-// Ex-funcionário usa senha antiga para autenticar
-const exUsuario = "joao";
-const senhaAntiga = "senhaAntiga123";
+const usuario = "joao";
+const senha = "senha123";
+const mfaToken = "123456";
 
-if (rede.autenticar(exUsuario, senhaAntiga)) {
-    rede.acessarSistemaCritico(exUsuario);
+if (rede.autenticar(usuario, senha, mfaToken)) {
+    rede.acessarSistemaCritico(usuario);
+}
+
+const usuarioAtivo = "laryssa";
+const senhaAtiva = "ifms2023larissa";
+if (rede.autenticar(usuarioAtivo, senhaAtiva, mfaToken)) {
+    rede.acessarSistemaCritico(usuarioAtivo);
 }
